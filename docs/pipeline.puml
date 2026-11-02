@@ -1,0 +1,41 @@
+@startuml
+title Hum-to-MIDI Core Pipeline
+
+start
+
+:Hummed melody (WAV file);
+
+partition "librosa" {
+  :Load audio and resample;
+}
+
+partition "torchcrepe" {
+  :Detect pitch frame by frame
+  (frequency + confidence);
+}
+
+partition "NumPy" {
+  :Smooth pitch curve;
+  :Drop silent and low-confidence frames;
+  :Group stable regions into notes
+  (start, end, MIDI pitch);
+  :Snap pitches to nearest semitone;
+}
+
+partition "librosa" {
+  :Estimate tempo;
+}
+
+partition "NumPy" {
+  :Snap note timings to beat grid;
+}
+
+partition "pretty_midi" {
+  :Build MIDI notes;
+  :Write MIDI file;
+}
+
+:Clean MIDI file (ready for DAW);
+
+stop
+@enduml
