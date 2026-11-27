@@ -6,28 +6,33 @@ start
 :Hummed melody (WAV file);
 
 partition "librosa" {
-  :Load audio and resample;
+  :Load audio, resample to 16 kHz mono;
 }
 
 partition "torchcrepe" {
   :Detect pitch frame by frame
-  (frequency + confidence);
+  (frequency + confidence + loudness);
 }
 
 partition "NumPy" {
-  :Smooth pitch curve;
   :Drop silent and low-confidence frames;
+  :Smooth pitch curve, correct sharp/flat drift;
+  :Split at gaps and loudness dips;
   :Group stable regions into notes
   (start, end, MIDI pitch);
-  :Snap pitches to nearest semitone;
 }
 
 partition "librosa" {
-  :Estimate tempo;
+  :Estimate tempo from note starts;
 }
 
 partition "NumPy" {
+  :Fine-tune tempo;
   :Snap note timings to beat grid;
+  :Detect key;
+  if (snap to key?) then (yes)
+    :Move out-of-key notes into the key;
+  endif
 }
 
 partition "pretty_midi" {
